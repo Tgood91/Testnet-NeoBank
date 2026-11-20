@@ -26,6 +26,8 @@ bun run check
 
 ### Environment variables
 
+Copy `.env.example` to `.env` and fill it in. `.env` is ignored by git.
+
 - `VITE_WALLETCONNECT_PROJECT_ID`: public WalletConnect / Reown project ID that enables WalletConnect wallets. Optional: without it, browser and Coinbase wallets still work.
 
 ## Mainnet

@@ -1,0 +1,25 @@
+# Secrets
+.env
+.env.*
+!.env.example
+.circle/
+recovery_file*
+
+# Dependencies and build output
+node_modules/
+dist/
+out/
+cache/
+contracts/out/
+contracts/cache/
+broadcast/
+
+# Logs and traces from the dev environment
+console.jsonl
+traces.jsonl
+*.log
+
+# OS and editor files
+.DS_Store
+.idea/
+.vscode/
