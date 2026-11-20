@@ -8,8 +8,9 @@ function load(): number {
   // A payment link names the network it was created on.
   const linked = Number(new URLSearchParams(window.location.search).get('chain'))
   if (PAYABLE_NETWORKS.some((n) => n.id === linked)) return linked
+  // Only testnets are restored from a previous visit: a mainnet session always starts on purpose.
   const saved = Number(localStorage.getItem(KEY))
-  return PAYABLE_NETWORKS.some((n) => n.id === saved) ? saved : DEFAULT_CHAIN_ID
+  return PAYABLE_NETWORKS.some((n) => n.id === saved && n.isTestnet) ? saved : DEFAULT_CHAIN_ID
 }
 
 interface NetworkState {
@@ -26,7 +27,7 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
   const select = useCallback((id: number) => {
     if (!PAYABLE_NETWORKS.some((n) => n.id === id)) return false
     setChainId(id)
-    localStorage.setItem(KEY, String(id))
+    if (getNetwork(id).isTestnet) localStorage.setItem(KEY, String(id))
     return true
   }, [])
 

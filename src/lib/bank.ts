@@ -1,27 +1,37 @@
-import { arcTestnet, baseSepolia, monadTestnet } from 'viem/chains'
+import { arc, arcTestnet, base, baseSepolia, monadTestnet } from 'viem/chains'
 import { getAddress, isAddress } from 'viem'
 import { getUsdc, requireChain } from '@/onchain-facts'
 
 export interface Network {
   id: number
   name: string
+  /** Mainnets move real funds. */
+  isTestnet: boolean
   /** ERC-20 USDC address from the registry. Undefined when USDC is not registered for the chain. */
   usdc?: `0x${string}`
   /** Block window used when scanning transfer logs. Public RPCs cap eth_getLogs ranges differently. */
   logRange: bigint
   logRanges: number
+  /** Circle bridge chain identifier. Undefined when the chain cannot be bridged with CCTP here. */
+  bridgeChain?: 'Arc_Testnet' | 'Base_Sepolia' | 'Arc' | 'Base'
+  /** Circle swap chain identifier. Undefined when swaps are not offered here. */
+  swapChain?: 'Arc_Testnet' | 'Arc' | 'Base'
 }
 
-function toNetwork(id: number, logRange: bigint, logRanges: number): Network {
+function toNetwork(id: number, logRange: bigint, logRanges: number, bridgeChain?: Network['bridgeChain'], swapChain?: Network['swapChain']): Network {
   const usdc = getUsdc(id)
-  return { id, name: requireChain(id).name, usdc: usdc ? (usdc.address as `0x${string}`) : undefined, logRange, logRanges }
+  const fact = requireChain(id)
+  return { id, name: fact.name, isTestnet: fact.isTestnet, usdc: usdc ? (usdc.address as `0x${string}`) : undefined, logRange, logRanges, bridgeChain, swapChain }
 }
 
 export const NETWORKS: readonly Network[] = [
-  toNetwork(arcTestnet.id, 10_000n, 5),
+  toNetwork(arcTestnet.id, 10_000n, 5, 'Arc_Testnet', 'Arc_Testnet'),
   // Base Sepolia's public RPC rejects eth_getLogs ranges above 200 blocks (measured).
-  toNetwork(baseSepolia.id, 200n, 25),
+  toNetwork(baseSepolia.id, 200n, 25, 'Base_Sepolia'),
   toNetwork(monadTestnet.id, 100n, 10),
+  // Mainnets. Public RPC log limits are unknown, so the windows are small and a failed range is reported as partial.
+  toNetwork(arc.id, 1_000n, 10, 'Arc', 'Arc'),
+  toNetwork(base.id, 200n, 25, 'Base', 'Base'),
 ]
 
 export const DEFAULT_CHAIN_ID: number = arcTestnet.id

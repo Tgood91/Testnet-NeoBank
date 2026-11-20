@@ -1,4 +1,4 @@
-import { ArrowDownLeft, ArrowUpRight, Loader2 } from 'lucide-react'
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Loader2 } from 'lucide-react'
 import { TokenUSDC } from '@web3icons/react'
 import type { Amount } from '@/onchain-money'
 import { glass } from '@/lib/bank'
@@ -15,6 +15,7 @@ interface Props {
   onSwitch: () => void
   onSend: () => void
   onReceive: () => void
+  onBridge: () => void
 }
 
 function splitBalance(balance?: Amount): { whole: string; cents: string } {
@@ -23,7 +24,7 @@ function splitBalance(balance?: Amount): { whole: string; cents: string } {
   return { whole: Number(whole).toLocaleString('en-US'), cents }
 }
 
-export function BalanceCard({ connected, wrongChain, switching, loading, balance, onConnect, onSwitch, onSend, onReceive }: Props) {
+export function BalanceCard({ connected, wrongChain, switching, loading, balance, onConnect, onSwitch, onSend, onReceive, onBridge }: Props) {
   const { network } = useNetwork()
   const CHAIN_NAME = network.name
   const feeToken = requireChain(network.id).nativeCurrency.symbol
@@ -62,11 +63,11 @@ export function BalanceCard({ connected, wrongChain, switching, loading, balance
             : `Digital dollars on ${CHAIN_NAME}. Fees are paid in ${feeToken}.`}
       </p>
 
-      <div className="mt-6 grid grid-cols-2 gap-3">
+      <div className="mt-6 grid grid-cols-3 gap-3">
         {!connected ? (
           <button
             onClick={onConnect}
-            className="col-span-2 min-h-12 rounded-2xl text-sm font-semibold text-white transition-transform hover:scale-[1.01] active:scale-[0.99]"
+            className="col-span-3 min-h-12 rounded-2xl text-sm font-semibold text-white transition-transform hover:scale-[1.01] active:scale-[0.99]"
             style={{ background: 'var(--accent)' }}
           >
             Connect wallet
@@ -75,7 +76,7 @@ export function BalanceCard({ connected, wrongChain, switching, loading, balance
           <button
             onClick={onSwitch}
             disabled={switching}
-            className="col-span-2 min-h-12 rounded-2xl text-sm font-semibold text-white transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+            className="col-span-3 min-h-12 rounded-2xl text-sm font-semibold text-white transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
             style={{ background: 'var(--accent)' }}
           >
             {switching ? (
@@ -101,6 +102,13 @@ export function BalanceCard({ connected, wrongChain, switching, loading, balance
               style={{ ...glass.pill, color: 'var(--ink)' }}
             >
               <ArrowDownLeft className="size-4" /> Receive
+            </button>
+            <button
+              onClick={onBridge}
+              className="flex min-h-12 items-center justify-center gap-2 rounded-2xl text-sm font-semibold transition-transform hover:scale-[1.01] active:scale-[0.99]"
+              style={{ ...glass.pill, color: 'var(--ink)' }}
+            >
+              <ArrowLeftRight className="size-4" /> Bridge
             </button>
           </>
         )}

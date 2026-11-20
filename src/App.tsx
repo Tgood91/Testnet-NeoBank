@@ -1,11 +1,16 @@
-import { useCallback, useEffect, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useState } from 'react'
 import { useAccount, useSwitchChain } from 'wagmi'
 import { ConnectKitButton, useModal } from 'connectkit'
-import { Landmark } from 'lucide-react'
+import { Landmark, Menu } from 'lucide-react'
 import { BalanceCard } from '@/components/BalanceCard'
 import { ActivityList } from '@/components/ActivityList'
 import { ContactsCard } from '@/components/ContactsCard'
 import { ReceiveSheet } from '@/components/ReceiveSheet'
+import { MenuDrawer } from '@/components/MenuDrawer'
+
+// The bridge SDK is large, so it loads only when someone opens the bridge.
+const SwapSheet = lazy(() => import('@/components/SwapSheet').then((m) => ({ default: m.SwapSheet })))
+const BridgeSheet = lazy(() => import('@/components/BridgeSheet').then((m) => ({ default: m.BridgeSheet })))
 import { SendSheet } from '@/components/SendSheet'
 import type { Prefill } from '@/components/SendSheet'
 import { useActivity } from '@/hooks/useActivity'
@@ -56,6 +61,9 @@ function Meridian() {
 
   const [sendOpen, setSendOpen] = useState(false)
   const [receiveOpen, setReceiveOpen] = useState(false)
+  const [bridgeOpen, setBridgeOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [swapOpen, setSwapOpen] = useState(false)
   const [prefill, setPrefill] = useState<Prefill>({})
   const [pending, setPending] = useState<Prefill | null>(initialRequest)
 
@@ -113,12 +121,21 @@ function Meridian() {
 
       <div className="relative z-10 mx-auto max-w-md px-4 pb-24 pt-6">
         <header className="mb-6 flex items-center justify-between">
-          <span className="display flex items-center gap-2 text-lg font-bold">
-            <span className="flex size-8 items-center justify-center rounded-xl text-white" style={{ background: 'var(--accent)' }}>
-              <Landmark className="size-4" />
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setMenuOpen(true)}
+              aria-label="Open menu"
+              className="-ml-2 flex size-11 items-center justify-center rounded-full transition-colors hover:bg-black/5"
+            >
+              <Menu className="size-5" />
+            </button>
+            <span className="display flex items-center gap-2 text-lg font-bold">
+              <span className="flex size-8 items-center justify-center rounded-xl text-white" style={{ background: 'var(--accent)' }}>
+                <Landmark className="size-4" />
+              </span>
+              Meridian
             </span>
-            Meridian
-          </span>
+          </div>
           <ConnectKitButton.Custom>
             {({ isConnected: connected, show, address: shown }) => (
               <button
@@ -143,6 +160,7 @@ function Meridian() {
             onSwitch={() => switchChain({ chainId: CHAIN_ID })}
             onSend={() => openSend()}
             onReceive={() => setReceiveOpen(true)}
+            onBridge={() => setBridgeOpen(true)}
           />
 
           {initialUnsupported && (
@@ -188,7 +206,25 @@ function Meridian() {
         onSaveContact={add}
         onSettled={onSettled}
       />
+      <MenuDrawer
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onSend={() => openSend()}
+        onReceive={() => setReceiveOpen(true)}
+        onBridge={() => setBridgeOpen(true)}
+        onSwap={() => setSwapOpen(true)}
+      />
       <ReceiveSheet open={receiveOpen} address={address} onClose={() => setReceiveOpen(false)} />
+      {swapOpen && (
+        <Suspense fallback={null}>
+          <SwapSheet open={swapOpen} onClose={() => setSwapOpen(false)} balance={balance} onSettled={onSettled} />
+        </Suspense>
+      )}
+      {bridgeOpen && (
+        <Suspense fallback={null}>
+          <BridgeSheet open={bridgeOpen} onClose={() => setBridgeOpen(false)} balance={balance} onSettled={onSettled} />
+        </Suspense>
+      )}
     </div>
   )
 }
